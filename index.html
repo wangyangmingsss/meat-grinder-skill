@@ -3,208 +3,215 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>多空绞肉机 | OKX AI 交易策略教程</title>
+<title>多空绞肉机 | War Room Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
 tailwind.config = {
   theme: {
     extend: {
       colors: {
-        noir: '#0B0E11',
-        'noir-light': '#141921',
-        'noir-card': '#1A1F2A',
-        okx: '#FCD535',
-        'okx-dim': '#FCD53540',
-        term: '#0D1117',
-        'term-green': '#4ADE80',
-        'term-red': '#F87171',
+        war: '#080C14',
+        'war-card': '#0D1520',
+        'war-border': '#1a2332',
+        danger: '#FF3B3B',
+        profit: '#00FF88',
+        data: '#FCD535',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        heading: ['Space Grotesk', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'monospace'],
       }
     }
   }
 }
 </script>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#0B0E11; color:#E2E8F0; font-family:'Inter',sans-serif; overflow-x:hidden; }
-  ::selection { background:#FCD535; color:#0B0E11; }
-  ::-webkit-scrollbar { width:6px; }
-  ::-webkit-scrollbar-track { background:#0B0E11; }
-  ::-webkit-scrollbar-thumb { background:#FCD53560; border-radius:3px; }
-  #progress-bar { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,#FCD535,#F59E0B); z-index:9999; width:0%; transition:width 0.1s; }
-  .glow-text { text-shadow:0 0 20px #FCD53580, 0 0 40px #FCD53540; }
-  .glow-border { box-shadow:0 0 15px #FCD53520, inset 0 0 15px #FCD53508; }
-  .terminal { background:#0D1117; border:1px solid #30363D; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.85rem; overflow:hidden; }
-  .terminal-header { background:#161B22; padding:8px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #30363D; }
-  .terminal-dot { width:12px; height:12px; border-radius:50%; }
-  .terminal-body { padding:16px 20px; line-height:1.8; overflow-x:auto; }
-  .terminal-body .prompt { color:#FCD535; }
-  .terminal-body .cmd { color:#E2E8F0; }
-  .terminal-body .comment { color:#6B7280; }
-  .terminal-body .success { color:#4ADE80; }
-  .terminal-body .error { color:#F87171; }
-  .terminal-body .info { color:#60A5FA; }
-  .terminal-body .warn { color:#FBBF24; }
-  .matrix-cell { transition: all 0.3s ease; }
-  .matrix-cell:hover { transform: scale(1.05); z-index: 10; }
-  .fade-section { opacity:0; transform:translateY(40px); }
-  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
-  .cursor-blink::after { content:'_'; animation:blink 1s step-end infinite; color:#FCD535; }
-  .hero-grid {
-    background-image: linear-gradient(rgba(252,213,53,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(252,213,53,0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-  }
-  .tag { display:inline-block; padding:2px 10px; border-radius:4px; font-size:0.75rem; font-weight:600; }
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#080C14;color:#c8d0dc;font-family:'IBM Plex Mono',monospace;overflow-x:hidden}
+::selection{background:#FF3B3B;color:#fff}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#080C14}
+::-webkit-scrollbar-thumb{background:#1a2332;border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:#FF3B3B}
+#progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,#FF3B3B,#ff6b6b);z-index:9999;width:0%;transition:width 80ms linear}
+.grid-bg{
+  background-image:
+    linear-gradient(rgba(26,35,50,0.5) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(26,35,50,0.5) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+.red-glow{text-shadow:0 0 30px rgba(255,59,59,0.6),0 0 60px rgba(255,59,59,0.3),0 0 100px rgba(255,59,59,0.1)}
+.card{background:#0D1520;border:1px solid #1a2332;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#1a2332 20%,#1a2332 80%,transparent)}
+.led{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.led-green{background:#00FF88;box-shadow:0 0 6px #00FF88}
+.led-red{background:#FF3B3B;box-shadow:0 0 6px #FF3B3B}
+.led-yellow{background:#FCD535;box-shadow:0 0 6px #FCD535}
+.led-off{background:#2a3444;box-shadow:none}
+.terminal{background:#060a10;border:1px solid #1a2332;font-family:'IBM Plex Mono',monospace;font-size:0.8rem}
+.terminal-bar{background:#0D1520;padding:6px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #1a2332;font-size:0.7rem;color:#4a5568}
+.t-dot{width:10px;height:10px;border-radius:50%}
+.fade-in{opacity:0;transform:translateY(30px)}
+.phase-line{position:absolute;top:50%;height:2px;background:linear-gradient(90deg,#FF3B3B,#1a2332);z-index:0}
+.stat-counter{font-variant-numeric:tabular-nums}
+.section-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:#FF3B3B;border:1px solid #FF3B3B30;padding:2px 10px;display:inline-block;margin-bottom:12px}
+h2.war-title{font-family:'Space Grotesk',sans-serif;font-weight:700;color:#e8ecf2;font-size:1.75rem;margin-bottom:1rem}
+@media(min-width:768px){h2.war-title{font-size:2rem}}
+.danger-border{border-left:3px solid #FF3B3B}
 </style>
 </head>
-<body>
+<body class="grid-bg">
 <div id="progress-bar"></div>
 
-<nav class="fixed top-0 left-0 w-full z-50 bg-noir/80 backdrop-blur-md border-b border-white/5">
-  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+<!-- NAV -->
+<nav class="fixed top-0 left-0 w-full z-50 border-b border-war-border" style="background:rgba(8,12,20,0.92);backdrop-filter:blur(12px)">
+  <div class="max-w-7xl mx-auto px-4 h-11 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <span class="text-okx font-bold text-lg">OKX</span>
-      <span class="text-white/40">|</span>
-      <span class="text-white/70 text-sm font-medium">AI 交易策略</span>
+      <span class="led led-red"></span>
+      <span class="font-heading font-bold text-sm text-white tracking-wide">多空绞肉机</span>
+      <span class="text-war-border">|</span>
+      <span class="text-xs text-white/30">WAR ROOM v1.0</span>
     </div>
-    <span class="tag bg-okx/10 text-okx border border-okx/20">#OKXAI交易大赛</span>
+    <div class="flex items-center gap-4">
+      <span class="hidden sm:inline text-xs text-white/20 font-mono">SYS.ONLINE</span>
+      <span class="led led-green"></span>
+      <span class="text-xs text-data border border-data/30 px-2 py-0.5">#OKXAI交易大赛</span>
+    </div>
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="min-h-screen flex items-center justify-center relative hero-grid pt-14">
-  <div class="absolute inset-0 bg-gradient-to-b from-okx/5 via-transparent to-transparent pointer-events-none"></div>
+<!-- ===================== HERO ===================== -->
+<section class="min-h-screen flex items-center justify-center relative pt-11" id="hero">
+  <div class="absolute inset-0 bg-gradient-radial pointer-events-none" style="background:radial-gradient(ellipse at center,rgba(255,59,59,0.06) 0%,transparent 60%)"></div>
   <div class="text-center px-4 relative z-10" id="hero-content">
-    <div class="mb-6">
-      <span class="tag bg-okx/10 text-okx border border-okx/30 text-sm">策略教程 v1.0</span>
+    <div class="mb-8 flex items-center justify-center gap-3">
+      <span class="led led-red"></span>
+      <span class="font-mono text-xs text-danger/70 tracking-widest">STRATEGY ACTIVE</span>
+      <span class="led led-red"></span>
     </div>
-    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 glow-text tracking-tight">多空绞肉机</h1>
-    <p class="text-lg md:text-xl text-okx font-mono font-medium mb-4">Long-Short Meat Grinder</p>
-    <p class="text-base md:text-lg text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">当一方仓位极度拥挤时，清算瀑布就是印钞机</p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-      <a href="#overview" class="px-8 py-3 bg-okx text-noir font-bold rounded-lg hover:bg-okx/90 transition-all">开始学习</a>
-      <a href="#install" class="px-8 py-3 border border-white/20 text-white/70 rounded-lg hover:border-okx/50 hover:text-okx transition-all">快速安装</a>
+    <h1 class="font-heading text-5xl md:text-7xl lg:text-8xl font-bold text-white red-glow tracking-tight mb-4">多空绞肉机</h1>
+    <p class="font-mono text-sm md:text-base text-danger/60 mb-3 tracking-wider">LONG-SHORT MEAT GRINDER</p>
+    <p class="text-sm md:text-base text-white/40 max-w-xl mx-auto mb-10 leading-relaxed">当一方仓位极度拥挤时，清算瀑布就是印钞机</p>
+
+    <!-- Stat counters row -->
+    <div class="flex flex-col sm:flex-row gap-4 sm:gap-0 justify-center items-center mb-12">
+      <div class="sm:border-r border-war-border px-6 py-3">
+        <div class="text-xs text-white/30 font-mono mb-1">7天回测</div>
+        <div class="text-2xl md:text-3xl font-heading font-bold text-profit stat-counter" id="stat-return">+0.00%</div>
+      </div>
+      <div class="sm:border-r border-war-border px-6 py-3">
+        <div class="text-xs text-white/30 font-mono mb-1">胜率</div>
+        <div class="text-2xl md:text-3xl font-heading font-bold text-data stat-counter" id="stat-winrate">0%</div>
+      </div>
+      <div class="px-6 py-3">
+        <div class="text-xs text-white/30 font-mono mb-1">最大回撤</div>
+        <div class="text-2xl md:text-3xl font-heading font-bold text-white/70 stat-counter" id="stat-dd">&lt;0.0%</div>
+      </div>
     </div>
-    <div class="mt-16 animate-bounce text-white/20">
-      <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+
+    <div class="animate-bounce text-white/15">
+      <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
     </div>
   </div>
 </section>
 
-<!-- OVERVIEW -->
-<section id="overview" class="py-24 px-4">
-  <div class="max-w-5xl mx-auto">
-    <div class="fade-section">
-      <p class="text-okx font-mono text-sm mb-3 tracking-widest uppercase">Strategy Overview</p>
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">策略概述</h2>
-      <p class="text-white/60 max-w-3xl leading-relaxed mb-12">"多空绞肉机"是一套基于<span class="text-okx">清算瀑布原理</span>的量化交易策略。当永续合约市场中一方仓位过度拥挤时，价格的微小波动会引发连锁清算，形成单方向的瀑布式行情。本策略通过三大核心指标实时监测市场拥挤度，在清算瀑布即将发生前精确入场，捕获极端行情中的利润。</p>
+<!-- ===================== SECTION: 策略原理 ===================== -->
+<section class="py-16 md:py-24 px-4" id="signals">
+  <div class="max-w-7xl mx-auto">
+    <div class="fade-in mb-10">
+      <div class="section-label">SIGNAL.CORE</div>
+      <h2 class="war-title">策略原理 &mdash; 三大核心信号</h2>
     </div>
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="fade-section bg-noir-card border border-white/5 rounded-xl p-6 hover:border-okx/30 transition-all glow-border">
-        <div class="w-12 h-12 rounded-lg bg-okx/10 flex items-center justify-center mb-4"><span class="text-okx text-xl font-bold">L/S</span></div>
-        <h3 class="text-white font-semibold text-lg mb-2">多空比 (Long/Short Ratio)</h3>
-        <p class="text-white/50 text-sm leading-relaxed">监测全网多头与空头的持仓比例。当比值偏离均值超过 1.5 个标准差时，表明一方仓位过度拥挤，清算风险急剧上升。</p>
-        <div class="mt-4 font-mono text-xs text-okx/70">阈值: &gt;2.5 或 &lt;0.4</div>
-      </div>
-      <div class="fade-section bg-noir-card border border-white/5 rounded-xl p-6 hover:border-okx/30 transition-all glow-border">
-        <div class="w-12 h-12 rounded-lg bg-okx/10 flex items-center justify-center mb-4"><span class="text-okx text-xl font-bold">OI</span></div>
-        <h3 class="text-white font-semibold text-lg mb-2">持仓量 (Open Interest)</h3>
-        <p class="text-white/50 text-sm leading-relaxed">追踪未平仓合约总量的变化速率。OI 快速攀升配合价格停滞，意味着大量新仓位正在建立，为清算瀑布蓄能。</p>
-        <div class="mt-4 font-mono text-xs text-okx/70">信号: OI 增速 &gt;15%/4h</div>
-      </div>
-      <div class="fade-section bg-noir-card border border-white/5 rounded-xl p-6 hover:border-okx/30 transition-all glow-border">
-        <div class="w-12 h-12 rounded-lg bg-okx/10 flex items-center justify-center mb-4"><span class="text-okx text-xl font-bold">FR</span></div>
-        <h3 class="text-white font-semibold text-lg mb-2">资金费率 (Funding Rate)</h3>
-        <p class="text-white/50 text-sm leading-relaxed">永续合约的多空平衡机制。极端正/负费率反映市场情绪的极度偏向，往往是反转行情的前兆信号。</p>
-        <div class="mt-4 font-mono text-xs text-okx/70">极端: |FR| &gt; 0.03%</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- INSTALLATION -->
-<section id="install" class="py-24 px-4 bg-noir-light/30">
-  <div class="max-w-5xl mx-auto">
-    <div class="fade-section">
-      <p class="text-okx font-mono text-sm mb-3 tracking-widest uppercase">Installation</p>
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">安装与配置</h2>
-      <p class="text-white/60 max-w-3xl leading-relaxed mb-10">只需两步即可启动策略。确保你已安装 Node.js 18+ 环境。</p>
-    </div>
-    <div class="fade-section space-y-6">
-      <div>
-        <p class="text-white/40 text-sm font-mono mb-2">Step 1 &mdash; 安装 CLI 工具</p>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dot bg-red-500/80"></div><div class="terminal-dot bg-yellow-500/80"></div><div class="terminal-dot bg-green-500/80"></div><span class="text-white/40 text-xs ml-2 font-mono">terminal</span></div>
-          <div class="terminal-body">
-            <span class="prompt">$</span> <span class="cmd">npm install -g @okx_ai/okx-trade-mcp @okx_ai/okx-trade-cli</span><br>
-            <span class="comment"># 验证安装</span><br>
-            <span class="prompt">$</span> <span class="cmd">okx-trade --version</span><br>
-            <span class="success">v2.4.1</span>
+    <div class="grid md:grid-cols-3 gap-4 fade-in">
+      <!-- Card 1: L/S -->
+      <div class="card p-5">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 border border-danger/40 flex items-center justify-center text-danger font-bold text-sm font-heading">L/S</div>
+          <div>
+            <div class="text-white font-heading font-semibold text-sm">多空比</div>
+            <div class="text-white/30 text-xs">Long/Short Ratio</div>
           </div>
+          <span class="ml-auto led led-red"></span>
+        </div>
+        <p class="text-white/45 text-xs leading-relaxed mb-3">监测全网多头与空头持仓比例。比值偏离均值超 1.5 标准差时，一方仓位过度拥挤，清算风险急剧上升。</p>
+        <div class="border-t border-war-border pt-3 mt-3 flex justify-between items-center">
+          <span class="text-xs text-white/30">阈值</span>
+          <span class="font-mono text-xs text-danger">&gt;2.5 或 &lt;0.4</span>
         </div>
       </div>
-      <div>
-        <p class="text-white/40 text-sm font-mono mb-2">Step 2 &mdash; 初始化策略配置</p>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dot bg-red-500/80"></div><div class="terminal-dot bg-yellow-500/80"></div><div class="terminal-dot bg-green-500/80"></div><span class="text-white/40 text-xs ml-2 font-mono">terminal</span></div>
-          <div class="terminal-body">
-            <span class="prompt">$</span> <span class="cmd">okx-trade init --strategy meat-grinder</span><br>
-            <span class="success">[OK]</span> <span class="cmd">配置文件已生成: ~/.okx/meat-grinder.yaml</span><br>
-            <span class="success">[OK]</span> <span class="cmd">API 密钥已绑定</span><br>
-            <span class="success">[OK]</span> <span class="cmd">风控参数已初始化</span><br><br>
-            <span class="prompt">$</span> <span class="cmd">okx-trade start --strategy meat-grinder --pair BTC-USDT-SWAP</span><br>
-            <span class="warn">[LIVE]</span> <span class="cmd">策略已启动，正在监听市场数据...</span><br>
-            <span class="info">[DATA]</span> <span class="cmd">WebSocket 已连接 | 延迟: 12ms</span>
+      <!-- Card 2: OI -->
+      <div class="card p-5">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 border border-profit/40 flex items-center justify-center text-profit font-bold text-sm font-heading">OI</div>
+          <div>
+            <div class="text-white font-heading font-semibold text-sm">持仓量</div>
+            <div class="text-white/30 text-xs">Open Interest</div>
           </div>
+          <span class="ml-auto led led-green"></span>
+        </div>
+        <p class="text-white/45 text-xs leading-relaxed mb-3">追踪未平仓合约总量的变化速率。OI 快速攀升配合价格停滞，大量新仓位正在建立，为清算瀑布蓄能。</p>
+        <div class="border-t border-war-border pt-3 mt-3 flex justify-between items-center">
+          <span class="text-xs text-white/30">信号</span>
+          <span class="font-mono text-xs text-profit">OI 增速 &gt;15%/4h</span>
+        </div>
+      </div>
+      <!-- Card 3: FR -->
+      <div class="card p-5">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 border border-data/40 flex items-center justify-center text-data font-bold text-sm font-heading">FR</div>
+          <div>
+            <div class="text-white font-heading font-semibold text-sm">资金费率</div>
+            <div class="text-white/30 text-xs">Funding Rate</div>
+          </div>
+          <span class="ml-auto led led-yellow"></span>
+        </div>
+        <p class="text-white/45 text-xs leading-relaxed mb-3">永续合约的多空平衡机制。极端正/负费率反映市场情绪极度偏向，往往是反转行情的前兆信号。</p>
+        <div class="border-t border-war-border pt-3 mt-3 flex justify-between items-center">
+          <span class="text-xs text-white/30">极端</span>
+          <span class="font-mono text-xs text-data">|FR| &gt; 0.03%</span>
         </div>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- SIGNAL MATRIX -->
-<section id="matrix" class="py-24 px-4">
-  <div class="max-w-5xl mx-auto">
-    <div class="fade-section">
-      <p class="text-okx font-mono text-sm mb-3 tracking-widest uppercase">Signal Matrix</p>
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">信号矩阵</h2>
-      <p class="text-white/60 max-w-3xl leading-relaxed mb-10">三大指标交叉验证，只有满足两个以上条件时才触发交易信号。以下矩阵展示各组合的信号强度。</p>
-    </div>
-    <div class="fade-section overflow-x-auto">
-      <table class="w-full border-collapse font-mono text-sm">
+    <!-- Signal Matrix Table -->
+    <div class="fade-in mt-8 card p-5 overflow-x-auto">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="led led-red"></span>
+        <span class="text-xs text-white/40 font-mono tracking-wider">SIGNAL MATRIX</span>
+      </div>
+      <table class="w-full text-xs font-mono border-collapse min-w-[500px]">
         <thead>
           <tr>
-            <th class="p-3 text-left text-white/40 border-b border-white/10"></th>
-            <th class="p-3 text-center text-okx border-b border-white/10">FR 极端正<br><span class="text-white/30 text-xs">&gt;+0.03%</span></th>
-            <th class="p-3 text-center text-okx border-b border-white/10">FR 中性<br><span class="text-white/30 text-xs">-0.01%~+0.01%</span></th>
-            <th class="p-3 text-center text-okx border-b border-white/10">FR 极端负<br><span class="text-white/30 text-xs">&lt;-0.03%</span></th>
+            <th class="p-2 text-left text-white/30 border-b border-war-border"></th>
+            <th class="p-2 text-center text-danger border-b border-war-border">FR 极端正<br><span class="text-white/20">&gt;+0.03%</span></th>
+            <th class="p-2 text-center text-white/50 border-b border-war-border">FR 中性<br><span class="text-white/20">-0.01~+0.01%</span></th>
+            <th class="p-2 text-center text-profit border-b border-war-border">FR 极端负<br><span class="text-white/20">&lt;-0.03%</span></th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="p-3 text-white/70 border-b border-white/5 font-semibold">L/S &gt; 2.5<br><span class="text-white/30 text-xs">多头拥挤</span></td>
-            <td class="p-3 border-b border-white/5"><div class="matrix-cell bg-red-500/20 border border-red-500/40 rounded-lg p-3 text-center"><div class="text-red-400 font-bold">STRONG SHORT</div><div class="text-white/40 text-xs mt-1">信号强度 ★★★</div></div></td>
-            <td class="p-3 border-b border-white/5"><div class="matrix-cell bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center"><div class="text-red-300/70 font-bold">WEAK SHORT</div><div class="text-white/40 text-xs mt-1">信号强度 ★★</div></div></td>
-            <td class="p-3 border-b border-white/5"><div class="matrix-cell bg-white/5 border border-white/10 rounded-lg p-3 text-center"><div class="text-white/40 font-bold">NEUTRAL</div><div class="text-white/30 text-xs mt-1">矛盾信号</div></div></td>
+            <td class="p-2 text-white/50 border-b border-war-border/50">L/S &gt; 2.5<br><span class="text-white/20">多头拥挤</span></td>
+            <td class="p-2 border-b border-war-border/50"><div class="bg-danger/15 border border-danger/30 p-2 text-center text-danger font-bold">STRONG SHORT<br><span class="text-white/30 font-normal">★★★</span></div></td>
+            <td class="p-2 border-b border-war-border/50"><div class="bg-danger/8 border border-danger/15 p-2 text-center text-danger/60">WEAK SHORT<br><span class="text-white/20 font-normal">★★</span></div></td>
+            <td class="p-2 border-b border-war-border/50"><div class="bg-white/3 border border-war-border p-2 text-center text-white/30">NEUTRAL<br><span class="text-white/15 font-normal">矛盾</span></div></td>
           </tr>
           <tr>
-            <td class="p-3 text-white/70 border-b border-white/5 font-semibold">L/S 0.8~1.2<br><span class="text-white/30 text-xs">均衡</span></td>
-            <td class="p-3 border-b border-white/5"><div class="matrix-cell bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center"><div class="text-red-300/70 font-bold">WEAK SHORT</div><div class="text-white/40 text-xs mt-1">需 OI 确认</div></div></td>
-            <td class="p-3 border-b border-white/5"><div class="matrix-cell bg-white/5 border border-white/10 rounded-lg p-3 text-center"><div class="text-white/40 font-bold">NO SIGNAL</div><div class="text-white/30 text-xs mt-1">观望</div></div></td>
-            <td class="p-3 border-b border-white/5"><div class="matrix-cell bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center"><div class="text-green-300/70 font-bold">WEAK LONG</div><div class="text-white/40 text-xs mt-1">需 OI 确认</div></div></td>
+            <td class="p-2 text-white/50 border-b border-war-border/50">L/S 0.8~1.2<br><span class="text-white/20">均衡</span></td>
+            <td class="p-2 border-b border-war-border/50"><div class="bg-danger/8 border border-danger/15 p-2 text-center text-danger/60">WEAK SHORT<br><span class="text-white/20 font-normal">需OI确认</span></div></td>
+            <td class="p-2 border-b border-war-border/50"><div class="bg-white/2 border border-war-border p-2 text-center text-white/20">NO SIGNAL<br><span class="text-white/10 font-normal">观望</span></div></td>
+            <td class="p-2 border-b border-war-border/50"><div class="bg-profit/8 border border-profit/15 p-2 text-center text-profit/60">WEAK LONG<br><span class="text-white/20 font-normal">需OI确认</span></div></td>
           </tr>
           <tr>
-            <td class="p-3 text-white/70 font-semibold">L/S &lt; 0.4<br><span class="text-white/30 text-xs">空头拥挤</span></td>
-            <td class="p-3"><div class="matrix-cell bg-white/5 border border-white/10 rounded-lg p-3 text-center"><div class="text-white/40 font-bold">NEUTRAL</div><div class="text-white/30 text-xs mt-1">矛盾信号</div></div></td>
-            <td class="p-3"><div class="matrix-cell bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center"><div class="text-green-300/70 font-bold">WEAK LONG</div><div class="text-white/40 text-xs mt-1">信号强度 ★★</div></div></td>
-            <td class="p-3"><div class="matrix-cell bg-green-500/20 border border-green-500/40 rounded-lg p-3 text-center"><div class="text-green-400 font-bold">STRONG LONG</div><div class="text-white/40 text-xs mt-1">信号强度 ★★★</div></div></td>
+            <td class="p-2 text-white/50">L/S &lt; 0.4<br><span class="text-white/20">空头拥挤</span></td>
+            <td class="p-2"><div class="bg-white/3 border border-war-border p-2 text-center text-white/30">NEUTRAL<br><span class="text-white/15 font-normal">矛盾</span></div></td>
+            <td class="p-2"><div class="bg-profit/8 border border-profit/15 p-2 text-center text-profit/60">WEAK LONG<br><span class="text-white/20 font-normal">★★</span></div></td>
+            <td class="p-2"><div class="bg-profit/15 border border-profit/30 p-2 text-center text-profit font-bold">STRONG LONG<br><span class="text-white/30 font-normal">★★★</span></div></td>
           </tr>
         </tbody>
       </table>
@@ -212,234 +219,473 @@ tailwind.config = {
   </div>
 </section>
 
-<!-- LIVE DEMO -->
-<section id="demo" class="py-24 px-4 bg-noir-light/30">
-  <div class="max-w-5xl mx-auto">
-    <div class="fade-section">
-      <p class="text-okx font-mono text-sm mb-3 tracking-widest uppercase">Live Demo</p>
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">实时数据监控</h2>
-      <p class="text-white/60 max-w-3xl leading-relaxed mb-10">以下是策略运行时的终端实时输出。AI 引擎持续扫描多个交易对的关键指标。</p>
+<!-- ===================== SECTION: 清算瀑布四阶段 ===================== -->
+<section class="py-16 md:py-24 px-4 border-t border-war-border" id="phases">
+  <div class="max-w-7xl mx-auto">
+    <div class="fade-in mb-10">
+      <div class="section-label">CASCADE.PHASES</div>
+      <h2 class="war-title">清算瀑布四阶段</h2>
     </div>
-    <div class="fade-section terminal">
-      <div class="terminal-header"><div class="terminal-dot bg-red-500/80"></div><div class="terminal-dot bg-yellow-500/80"></div><div class="terminal-dot bg-green-500/80"></div><span class="text-white/40 text-xs ml-2 font-mono">okx-trade monitor --strategy meat-grinder</span></div>
-      <div class="terminal-body text-xs md:text-sm leading-loose">
-        <span class="comment">── 多空绞肉机 | 实时市场扫描 ──────────────────────</span><br>
-        <span class="comment">── 更新时间: 2026-04-11 08:00:00 UTC ──</span><br><br>
-        <span class="info">[SCAN]</span> <span class="cmd">BTC-USDT-SWAP</span><br>
-        <span class="cmd">&nbsp;&nbsp;价格: </span><span class="warn">$74,659</span><span class="cmd"> | 资金费率: </span><span class="error">-0.0000156</span><span class="cmd"> | 多空比: </span><span class="error">0.38</span><span class="cmd"> | OI 变化: </span><span class="warn">+18.2%</span><br>
-        <span class="success">&nbsp;&nbsp;&gt;&gt;&gt; 信号: STRONG LONG | 空头极度拥挤 + 负费率</span><br><br>
-        <span class="info">[SCAN]</span> <span class="cmd">ETH-USDT-SWAP</span><br>
-        <span class="cmd">&nbsp;&nbsp;价格: </span><span class="warn">$2,339</span><span class="cmd"> | 资金费率: </span><span class="cmd">+0.0000001</span><span class="cmd"> | 多空比: </span><span class="cmd">1.05</span><span class="cmd"> | OI 变化: </span><span class="cmd">+3.1%</span><br>
-        <span class="comment">&nbsp;&nbsp;&gt;&gt;&gt; 信号: NO SIGNAL | 市场均衡</span><br><br>
-        <span class="info">[SCAN]</span> <span class="cmd">SOL-USDT-SWAP</span><br>
-        <span class="cmd">&nbsp;&nbsp;价格: </span><span class="warn">$85.23</span><span class="cmd"> | 资金费率: </span><span class="success">+0.0000643</span><span class="cmd"> | 多空比: </span><span class="warn">2.71</span><span class="cmd"> | OI 变化: </span><span class="warn">+22.5%</span><br>
-        <span class="error">&nbsp;&nbsp;&gt;&gt;&gt; 信号: STRONG SHORT | 多头极度拥挤 + 高正费率</span><br><br>
-        <span class="comment">────────────────────────────────────────────────</span><br>
-        <span class="cmd">活跃信号: </span><span class="warn">2</span><span class="cmd"> | 监控交易对: </span><span class="info">3</span><span class="cmd"> | 下次刷新: 30s</span><span class="cursor-blink"></span>
+    <!-- Horizontal timeline -->
+    <div class="fade-in relative">
+      <!-- Connecting line (desktop) -->
+      <div class="hidden md:block absolute top-[52px] left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-danger/60 via-danger/30 to-profit/60"></div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Phase 1 -->
+        <div class="card p-5 text-center relative">
+          <div class="w-10 h-10 mx-auto border-2 border-danger/50 rounded-full flex items-center justify-center text-danger font-heading font-bold text-sm mb-4 bg-war relative z-10">1</div>
+          <div class="text-white font-heading font-semibold text-sm mb-2">仓位积累</div>
+          <p class="text-white/35 text-xs leading-relaxed">市场情绪偏向一侧，多头或空头持续加仓，OI 快速攀升。价格维持窄幅震荡。</p>
+          <div class="mt-3 flex justify-center"><span class="led led-yellow"></span></div>
+        </div>
+        <!-- Phase 2 -->
+        <div class="card p-5 text-center relative">
+          <div class="w-10 h-10 mx-auto border-2 border-danger rounded-full flex items-center justify-center text-danger font-heading font-bold text-sm mb-4 bg-war relative z-10">2</div>
+          <div class="text-white font-heading font-semibold text-sm mb-2">触发事件</div>
+          <p class="text-white/35 text-xs leading-relaxed">一个异常波动(大单、新闻、费率结算)打破平衡，价格突破关键位，触及第一批止损。</p>
+          <div class="mt-3 flex justify-center"><span class="led led-red"></span></div>
+        </div>
+        <!-- Phase 3 -->
+        <div class="card p-5 text-center relative">
+          <div class="w-10 h-10 mx-auto border-2 border-danger rounded-full flex items-center justify-center text-white font-heading font-bold text-sm mb-4 bg-danger relative z-10">3</div>
+          <div class="text-danger font-heading font-semibold text-sm mb-2">瀑布开始</div>
+          <p class="text-white/35 text-xs leading-relaxed">连锁清算启动。每一笔强平进一步推动价格，触发更多止损和清算。正反馈循环形成。</p>
+          <div class="mt-3 flex justify-center"><span class="led led-red"></span><span class="led led-red ml-1"></span><span class="led led-red ml-1"></span></div>
+        </div>
+        <!-- Phase 4 -->
+        <div class="card p-5 text-center relative">
+          <div class="w-10 h-10 mx-auto border-2 border-profit/50 rounded-full flex items-center justify-center text-profit font-heading font-bold text-sm mb-4 bg-war relative z-10">4</div>
+          <div class="text-profit font-heading font-semibold text-sm mb-2">耗竭</div>
+          <p class="text-white/35 text-xs leading-relaxed">拥挤仓位被清洗殆尽，OI 骤降，波动率回落。策略在此阶段平仓获利。</p>
+          <div class="mt-3 flex justify-center"><span class="led led-green"></span></div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- BACKTEST -->
-<section id="backtest" class="py-24 px-4">
-  <div class="max-w-5xl mx-auto">
-    <div class="fade-section">
-      <p class="text-okx font-mono text-sm mb-3 tracking-widest uppercase">Backtest Results</p>
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">7 天回测报告</h2>
-      <p class="text-white/60 max-w-3xl leading-relaxed mb-10">以 BTC-USDT-SWAP 为标的，回测周期 2026/04/09 - 2026/04/16，初始资金 $10,000。</p>
+<!-- ===================== SECTION: 安装 & 快速开始 ===================== -->
+<section class="py-16 md:py-24 px-4 border-t border-war-border" id="install">
+  <div class="max-w-7xl mx-auto">
+    <div class="fade-in mb-10">
+      <div class="section-label">SYS.INSTALL</div>
+      <h2 class="war-title">安装 &amp; 快速开始</h2>
     </div>
-    <div class="fade-section grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-      <div class="bg-noir-card border border-white/5 rounded-xl p-5 text-center">
-        <p class="text-white/40 text-xs font-mono mb-1">总收益率</p>
-        <p class="text-3xl font-bold text-green-400">+7.36%</p>
-      </div>
-      <div class="bg-noir-card border border-white/5 rounded-xl p-5 text-center">
-        <p class="text-white/40 text-xs font-mono mb-1">交易次数</p>
-        <p class="text-3xl font-bold text-white">2</p>
-      </div>
-      <div class="bg-noir-card border border-white/5 rounded-xl p-5 text-center">
-        <p class="text-white/40 text-xs font-mono mb-1">胜率</p>
-        <p class="text-3xl font-bold text-okx">100%</p>
-      </div>
-      <div class="bg-noir-card border border-white/5 rounded-xl p-5 text-center">
-        <p class="text-white/40 text-xs font-mono mb-1">最大回撤</p>
-        <p class="text-3xl font-bold text-white/70">&lt;1.5%</p>
-      </div>
-    </div>
-    <div class="fade-section space-y-4">
-      <div class="bg-noir-card border border-white/5 rounded-xl p-6 flex flex-col md:flex-row md:items-center gap-4">
-        <div class="flex items-center gap-3 md:w-48 shrink-0">
-          <span class="tag bg-red-500/20 text-red-400 border border-red-500/30">SHORT</span>
-          <span class="text-white/40 font-mono text-sm">04/11</span>
-        </div>
-        <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm font-mono">
-          <div><p class="text-white/30 text-xs">入场</p><p class="text-white">$72,800</p></div>
-          <div><p class="text-white/30 text-xs">平仓</p><p class="text-white">$71,100</p></div>
-          <div><p class="text-white/30 text-xs">收益</p><p class="text-green-400 font-bold">+2.33%</p></div>
-          <div><p class="text-white/30 text-xs">持仓时间</p><p class="text-white/70">14h 22m</p></div>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="fade-in">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-danger/70"></div><div class="t-dot bg-data/70"></div><div class="t-dot bg-profit/70"></div><span class="ml-2">step-1: install</span></div>
+          <div class="p-4 text-xs leading-loose" style="color:#00FF88">
+            <span style="color:#FF3B3B">$</span> <span style="color:#c8d0dc">npm install -g @okx_ai/okx-trade-mcp @okx_ai/okx-trade-cli</span><br>
+            <span style="color:#4a5568"># 验证安装</span><br>
+            <span style="color:#FF3B3B">$</span> <span style="color:#c8d0dc">okx-trade --version</span><br>
+            <span>v2.4.1</span>
+          </div>
         </div>
       </div>
-      <div class="bg-noir-card border border-white/5 rounded-xl p-6 flex flex-col md:flex-row md:items-center gap-4">
-        <div class="flex items-center gap-3 md:w-48 shrink-0">
-          <span class="tag bg-green-500/20 text-green-400 border border-green-500/30">LONG</span>
-          <span class="text-white/40 font-mono text-sm">04/13</span>
+      <div class="fade-in">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-danger/70"></div><div class="t-dot bg-data/70"></div><div class="t-dot bg-profit/70"></div><span class="ml-2">step-2: config &amp; launch</span></div>
+          <div class="p-4 text-xs leading-loose">
+            <span style="color:#FF3B3B">$</span> <span style="color:#c8d0dc">okx-trade init --strategy meat-grinder</span><br>
+            <span style="color:#00FF88">[OK]</span> <span style="color:#c8d0dc">配置文件已生成: ~/.okx/meat-grinder.yaml</span><br>
+            <span style="color:#00FF88">[OK]</span> <span style="color:#c8d0dc">API 密钥已绑定</span><br>
+            <span style="color:#00FF88">[OK]</span> <span style="color:#c8d0dc">风控参数已初始化</span><br><br>
+            <span style="color:#FF3B3B">$</span> <span style="color:#c8d0dc">okx-trade start --strategy meat-grinder --pair BTC-USDT-SWAP</span><br>
+            <span style="color:#FCD535">[LIVE]</span> <span style="color:#c8d0dc">策略已启动，正在监听市场数据...</span><br>
+            <span style="color:#6ba3f7">[DATA]</span> <span style="color:#c8d0dc">WebSocket 已连接 | 延迟: 12ms</span>
+          </div>
         </div>
-        <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm font-mono">
-          <div><p class="text-white/30 text-xs">入场</p><p class="text-white">$72,100</p></div>
-          <div><p class="text-white/30 text-xs">平仓</p><p class="text-white">$75,200</p></div>
-          <div><p class="text-white/30 text-xs">收益</p><p class="text-green-400 font-bold">+4.30%</p></div>
-          <div><p class="text-white/30 text-xs">持仓时间</p><p class="text-white/70">21h 08m</p></div>
-        </div>
-      </div>
-    </div>
-    <div class="fade-section mt-8 terminal">
-      <div class="terminal-header"><div class="terminal-dot bg-red-500/80"></div><div class="terminal-dot bg-yellow-500/80"></div><div class="terminal-dot bg-green-500/80"></div><span class="text-white/40 text-xs ml-2 font-mono">backtest summary</span></div>
-      <div class="terminal-body text-xs md:text-sm">
-        <span class="comment"># 回测完成 ──────────────────────────</span><br>
-        <span class="cmd">净利润:&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="success">+$736.00 (+7.36%)</span><br>
-        <span class="cmd">夏普比率:&nbsp;&nbsp;</span><span class="info">3.21</span><br>
-        <span class="cmd">最大回撤:&nbsp;&nbsp;</span><span class="warn">-1.42%</span><br>
-        <span class="cmd">盈亏比:&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="success">1.84</span><br>
-        <span class="cmd">平均持仓:&nbsp;&nbsp;</span><span class="cmd">17h 45m</span><br>
-        <span class="success">────────────────────────────────────</span><br>
-        <span class="success">策略评级: A+</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- RISK CONTROL -->
-<section id="risk" class="py-24 px-4 bg-noir-light/30">
-  <div class="max-w-5xl mx-auto">
-    <div class="fade-section">
-      <p class="text-okx font-mono text-sm mb-3 tracking-widest uppercase">Risk Management</p>
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">风险控制体系</h2>
-      <p class="text-white/60 max-w-3xl leading-relaxed mb-10">绞肉机策略内置多层风控机制，确保在极端行情中保护本金。</p>
+<!-- ===================== SECTION: Live Demo 数据面板 ===================== -->
+<section class="py-16 md:py-24 px-4 border-t border-war-border" id="demo">
+  <div class="max-w-7xl mx-auto">
+    <div class="fade-in mb-10">
+      <div class="section-label">LIVE.MONITOR</div>
+      <h2 class="war-title">Live Demo 数据面板</h2>
     </div>
-    <div class="grid md:grid-cols-2 gap-6">
-      <div class="fade-section bg-noir-card border border-white/5 rounded-xl p-6">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center"><span class="text-red-400 font-bold text-sm">2%</span></div>
-          <h3 class="text-white font-semibold">单笔风险上限</h3>
+    <!-- 3 asset cards -->
+    <div class="grid md:grid-cols-3 gap-4 fade-in mb-6">
+      <!-- BTC -->
+      <div class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="led led-green"></span>
+            <span class="text-white font-heading font-semibold text-sm">BTC-USDT</span>
+          </div>
+          <span class="text-xs text-profit border border-profit/30 px-2 py-0.5">STRONG LONG</span>
         </div>
-        <p class="text-white/50 text-sm leading-relaxed">每笔交易最大亏损不超过总资金的 2%。系统根据入场价和止损位自动计算仓位大小，严格执行资金管理纪律。</p>
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <div class="text-white/25 mb-0.5">价格</div>
+            <div class="text-data font-bold text-base">$74,659</div>
+          </div>
+          <div>
+            <div class="text-white/25 mb-0.5">资金费率</div>
+            <div class="text-danger font-mono">-0.0000156</div>
+          </div>
+          <div>
+            <div class="text-white/25 mb-0.5">多空比</div>
+            <div class="text-danger font-mono font-bold">0.38</div>
+          </div>
+          <div>
+            <div class="text-white/25 mb-0.5">OI 变化</div>
+            <div class="text-data font-mono">+18.2%</div>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-war-border flex items-center gap-2">
+          <span class="led led-green"></span><span class="led led-green"></span><span class="led led-green"></span>
+          <span class="text-profit text-xs ml-auto">3/3 信号触发</span>
+        </div>
       </div>
-      <div class="fade-section bg-noir-card border border-white/5 rounded-xl p-6">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-lg bg-okx/10 flex items-center justify-center"><span class="text-okx font-bold text-sm">CB</span></div>
-          <h3 class="text-white font-semibold">熔断机制 (Circuit Breaker)</h3>
+      <!-- ETH -->
+      <div class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="led led-off"></span>
+            <span class="text-white font-heading font-semibold text-sm">ETH-USDT</span>
+          </div>
+          <span class="text-xs text-white/25 border border-war-border px-2 py-0.5">NO SIGNAL</span>
         </div>
-        <p class="text-white/50 text-sm leading-relaxed">单日亏损达到 5% 时自动暂停交易 4 小时；连续 3 笔亏损后暂停 8 小时。防止情绪化交易和策略失效时的持续损失。</p>
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <div class="text-white/25 mb-0.5">价格</div>
+            <div class="text-data font-bold text-base">$2,339</div>
+          </div>
+          <div>
+            <div class="text-white/25 mb-0.5">资金费率</div>
+            <div class="text-white/40 font-mono">+0.0000001</div>
+          </div>
+          <div>
+            <div class="text-white/25 mb-0.5">多空比</div>
+            <div class="text-white/40 font-mono">1.05</div>
+          </div>
+          <div>
+            <div class="text-white/25 mb-0.5">OI 变化</div>
+            <div class="text-white/40 font-mono">+3.1%</div>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-war-border flex items-center gap-2">
+          <span class="led led-off"></span><span class="led led-off"></span><span class="led led-off"></span>
+          <span class="text-white/20 text-xs ml-auto">0/3 信号触发</span>
+        </div>
       </div>
-      <div class="fade-section bg-noir-card border border-white/5 rounded-xl p-6">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center"><span class="text-blue-400 font-bold text-sm">5x</span></div>
-          <h3 class="text-white font-semibold">杠杆上限</h3>
+      <!-- SOL -->
+      <div class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="led led-red"></span>
+            <span class="text-white font-heading font-semibold text-sm">SOL-USDT</span>
+          </div>
+          <span class="text-xs text-danger border border-danger/30 px-2 py-0.5">STRONG SHORT</span>
         </div>
-        <p class="text-white/50 text-sm leading-relaxed">最大杠杆锁定在 5 倍。即使信号极强也不会突破此限制。高杠杆是清算瀑布的燃料，我们只做收割者，不做燃料。</p>
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <div class="text-white/25 mb-0.5">价格</div>
+            <div class="text-data font-bold text-base">$85.23</div>
+          </div>
+          <div>
+            <div class="text-white/25 mb-0.5">资金费率</div>
+            <div class="text-profit font-mono">+0.0000643</div>
+          </div>
+          <div>
+            <div class="text-white/25 mb-0.5">多空比</div>
+            <div class="text-danger font-mono font-bold">2.71</div>
+          </div>
+          <div>
+            <div class="text-white/25 mb-0.5">OI 变化</div>
+            <div class="text-data font-mono">+22.5%</div>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-war-border flex items-center gap-2">
+          <span class="led led-red"></span><span class="led led-red"></span><span class="led led-red"></span>
+          <span class="text-danger text-xs ml-auto">3/3 信号触发</span>
+        </div>
       </div>
-      <div class="fade-section bg-noir-card border border-white/5 rounded-xl p-6">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center"><span class="text-green-400 font-bold text-sm">TP</span></div>
-          <h3 class="text-white font-semibold">动态止盈</h3>
-        </div>
-        <p class="text-white/50 text-sm leading-relaxed">采用移动止盈策略，在利润达到 1.5% 后启动追踪止损。清算瀑布行情中最大化利润捕获，同时锁定已有收益。</p>
+    </div>
+    <!-- Terminal trade record -->
+    <div class="fade-in terminal">
+      <div class="terminal-bar"><div class="t-dot bg-danger/70"></div><div class="t-dot bg-data/70"></div><div class="t-dot bg-profit/70"></div><span class="ml-2">okx-trade monitor --strategy meat-grinder</span></div>
+      <div class="p-4 text-xs leading-loose">
+        <span style="color:#4a5568">── 多空绞肉机 | 实时市场扫描 ──────────────────────</span><br>
+        <span style="color:#4a5568">── 更新时间: 2026-04-11 08:00:00 UTC ──</span><br><br>
+        <span style="color:#6ba3f7">[SCAN]</span> BTC-USDT-SWAP<br>
+        &nbsp;&nbsp;价格: <span style="color:#FCD535">$74,659</span> | 资金费率: <span style="color:#FF3B3B">-0.0000156</span> | 多空比: <span style="color:#FF3B3B">0.38</span> | OI: <span style="color:#FCD535">+18.2%</span><br>
+        <span style="color:#00FF88">&nbsp;&nbsp;&gt;&gt;&gt; 信号: STRONG LONG | 空头极度拥挤 + 负费率</span><br><br>
+        <span style="color:#6ba3f7">[SCAN]</span> SOL-USDT-SWAP<br>
+        &nbsp;&nbsp;价格: <span style="color:#FCD535">$85.23</span> | 资金费率: <span style="color:#00FF88">+0.0000643</span> | 多空比: <span style="color:#FCD535">2.71</span> | OI: <span style="color:#FCD535">+22.5%</span><br>
+        <span style="color:#FF3B3B">&nbsp;&nbsp;&gt;&gt;&gt; 信号: STRONG SHORT | 多头极度拥挤 + 高正费率</span><br><br>
+        <span style="color:#4a5568">────────────────────────────────────────────────</span><br>
+        活跃信号: <span style="color:#FCD535">2</span> | 监控交易对: <span style="color:#6ba3f7">3</span> | 下次刷新: 30s<span class="animate-pulse">_</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- AI vs HUMAN -->
-<section id="compare" class="py-24 px-4">
-  <div class="max-w-5xl mx-auto">
-    <div class="fade-section">
-      <p class="text-okx font-mono text-sm mb-3 tracking-widest uppercase">AI vs Human</p>
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">AI 交易 vs 人工交易</h2>
-      <p class="text-white/60 max-w-3xl leading-relaxed mb-10">清算瀑布往往在毫秒间发生，人类交易者几乎不可能实时捕捉所有信号。</p>
+<!-- ===================== SECTION: 7天回测 ===================== -->
+<section class="py-16 md:py-24 px-4 border-t border-war-border" id="backtest">
+  <div class="max-w-7xl mx-auto">
+    <div class="fade-in mb-10">
+      <div class="section-label">BACKTEST.7D</div>
+      <h2 class="war-title">7天回测 &mdash; 权益曲线</h2>
     </div>
-    <div class="fade-section overflow-x-auto">
-      <table class="w-full text-sm border-collapse">
-        <thead>
-          <tr class="border-b border-white/10">
-            <th class="text-left p-4 text-white/40 font-mono">维度</th>
-            <th class="text-center p-4 text-white/60">人工交易</th>
-            <th class="text-center p-4 text-okx">AI 绞肉机</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="border-b border-white/5"><td class="p-4 text-white/70 font-medium">数据处理</td><td class="p-4 text-center text-white/40">1-3 个交易对</td><td class="p-4 text-center text-white font-medium">50+ 交易对并行扫描</td></tr>
-          <tr class="border-b border-white/5"><td class="p-4 text-white/70 font-medium">反应速度</td><td class="p-4 text-center text-white/40">3-10 秒</td><td class="p-4 text-center text-white font-medium">&lt;50 毫秒</td></tr>
-          <tr class="border-b border-white/5"><td class="p-4 text-white/70 font-medium">情绪干扰</td><td class="p-4 text-center text-white/40">FOMO / 恐惧 / 犹豫</td><td class="p-4 text-center text-white font-medium">零情绪，纯逻辑执行</td></tr>
-          <tr class="border-b border-white/5"><td class="p-4 text-white/70 font-medium">运行时间</td><td class="p-4 text-center text-white/40">每天 8-12 小时</td><td class="p-4 text-center text-white font-medium">24/7 不间断</td></tr>
-          <tr class="border-b border-white/5"><td class="p-4 text-white/70 font-medium">风控执行</td><td class="p-4 text-center text-white/40">主观判断，常违反纪律</td><td class="p-4 text-center text-white font-medium">硬编码规则，绝不违反</td></tr>
-          <tr><td class="p-4 text-white/70 font-medium">回测验证</td><td class="p-4 text-center text-white/40">手动统计，易出错</td><td class="p-4 text-center text-white font-medium">自动化回测 + 统计报告</td></tr>
-        </tbody>
-      </table>
+    <!-- ECharts container -->
+    <div class="fade-in card p-4 mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="led led-green"></span>
+        <span class="text-xs text-white/30 font-mono">BTC-USDT-SWAP | 2026/04/09 - 2026/04/15 | 初始: $500</span>
+      </div>
+      <div id="equity-chart" style="width:100%;height:320px"></div>
+    </div>
+    <!-- Trade summary cards -->
+    <div class="grid md:grid-cols-2 gap-4 fade-in">
+      <div class="card p-4 danger-border">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-war bg-danger px-2 py-0.5">SHORT</span>
+            <span class="text-white/30 text-xs font-mono">04/11 入场</span>
+          </div>
+          <span class="text-profit text-sm font-bold">+2.33%</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-xs font-mono">
+          <div><div class="text-white/25">入场</div><div class="text-white">$72,800</div></div>
+          <div><div class="text-white/25">平仓</div><div class="text-white">$71,100</div></div>
+          <div><div class="text-white/25">利润</div><div class="text-profit">+$11.65</div></div>
+          <div><div class="text-white/25">持仓</div><div class="text-white/50">14h 22m</div></div>
+        </div>
+      </div>
+      <div class="card p-4" style="border-left:3px solid #00FF88">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-war bg-profit px-2 py-0.5">LONG</span>
+            <span class="text-white/30 text-xs font-mono">04/13 入场</span>
+          </div>
+          <span class="text-profit text-sm font-bold">+4.30%</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-xs font-mono">
+          <div><div class="text-white/25">入场</div><div class="text-white">$72,100</div></div>
+          <div><div class="text-white/25">平仓</div><div class="text-white">$75,200</div></div>
+          <div><div class="text-white/25">利润</div><div class="text-profit">+$25.18</div></div>
+          <div><div class="text-white/25">持仓</div><div class="text-white/50">21h 08m</div></div>
+        </div>
+      </div>
+    </div>
+    <!-- Summary stats row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 fade-in">
+      <div class="card p-4 text-center">
+        <div class="text-white/25 text-xs mb-1">总收益率</div>
+        <div class="text-profit font-heading font-bold text-2xl">+7.36%</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-white/25 text-xs mb-1">交易次数</div>
+        <div class="text-white font-heading font-bold text-2xl">2</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-white/25 text-xs mb-1">胜率</div>
+        <div class="text-data font-heading font-bold text-2xl">100%</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-white/25 text-xs mb-1">夏普比率</div>
+        <div class="text-white/70 font-heading font-bold text-2xl">3.21</div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- RESOURCES -->
-<section id="resources" class="py-24 px-4 bg-noir-light/30">
-  <div class="max-w-5xl mx-auto">
-    <div class="fade-section">
-      <p class="text-okx font-mono text-sm mb-3 tracking-widest uppercase">Resources</p>
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">资源与链接</h2>
+<!-- ===================== SECTION: 风控体系 ===================== -->
+<section class="py-16 md:py-24 px-4 border-t border-war-border" id="risk">
+  <div class="max-w-7xl mx-auto">
+    <div class="fade-in mb-10">
+      <div class="section-label">RISK.CTRL</div>
+      <h2 class="war-title">风控体系</h2>
     </div>
-    <div class="fade-section grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <a href="https://github.com/okx-ai/okx-trade-mcp" target="_blank" class="group bg-noir-card border border-white/5 rounded-xl p-5 hover:border-okx/30 transition-all">
-        <div class="text-white/30 text-xs font-mono mb-2">GitHub</div>
-        <div class="text-white font-medium group-hover:text-okx transition-colors">okx-trade-mcp</div>
-        <div class="text-white/40 text-xs mt-1">源码 &amp; 文档</div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 fade-in">
+      <div class="card p-5 danger-border">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="led led-red"></span>
+          <span class="text-danger font-heading font-bold text-lg">2%</span>
+        </div>
+        <div class="text-white font-heading font-semibold text-sm mb-2">单笔风险上限</div>
+        <p class="text-white/35 text-xs leading-relaxed">每笔交易最大亏损不超过总资金的 2%。系统根据入场价和止损位自动计算仓位大小。</p>
+      </div>
+      <div class="card p-5 danger-border">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="led led-red"></span>
+          <span class="text-danger font-heading font-bold text-lg">CB</span>
+        </div>
+        <div class="text-white font-heading font-semibold text-sm mb-2">熔断机制</div>
+        <p class="text-white/35 text-xs leading-relaxed">单日亏损达 5% 自动暂停 4 小时；连续 3 笔亏损暂停 8 小时。防止策略失效时持续损失。</p>
+      </div>
+      <div class="card p-5 danger-border">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="led led-red"></span>
+          <span class="text-danger font-heading font-bold text-lg">5x</span>
+        </div>
+        <div class="text-white font-heading font-semibold text-sm mb-2">杠杆上限</div>
+        <p class="text-white/35 text-xs leading-relaxed">最大杠杆锁定 5 倍。高杠杆是清算瀑布的燃料，我们只做收割者，不做燃料。</p>
+      </div>
+      <div class="card p-5 danger-border">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="led led-green"></span>
+          <span class="text-profit font-heading font-bold text-lg">TP</span>
+        </div>
+        <div class="text-white font-heading font-semibold text-sm mb-2">追踪止盈</div>
+        <p class="text-white/35 text-xs leading-relaxed">利润达 1.5% 后启动移动止盈。清算瀑布中最大化利润，同时锁定已有收益。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SECTION: 资源链接 ===================== -->
+<section class="py-16 md:py-24 px-4 border-t border-war-border" id="resources">
+  <div class="max-w-7xl mx-auto">
+    <div class="fade-in mb-10">
+      <div class="section-label">SYS.LINKS</div>
+      <h2 class="war-title">资源链接</h2>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 fade-in">
+      <a href="https://github.com/wangyangmingsss/meat-grinder-skill" target="_blank" class="card p-4 group hover:border-danger/40 transition-all block">
+        <div class="text-white/20 text-xs font-mono mb-2">GITHUB</div>
+        <div class="text-white font-heading font-semibold text-sm group-hover:text-danger transition-colors">meat-grinder-skill</div>
+        <div class="text-white/25 text-xs mt-1">源码 &amp; 文档</div>
       </a>
-      <a href="https://www.npmjs.com/package/@okx_ai/okx-trade-mcp" target="_blank" class="group bg-noir-card border border-white/5 rounded-xl p-5 hover:border-okx/30 transition-all">
-        <div class="text-white/30 text-xs font-mono mb-2">npm</div>
-        <div class="text-white font-medium group-hover:text-okx transition-colors">@okx_ai/okx-trade-mcp</div>
-        <div class="text-white/40 text-xs mt-1">包管理器</div>
+      <a href="https://www.npmjs.com/package/@okx_ai/okx-trade-mcp" target="_blank" class="card p-4 group hover:border-danger/40 transition-all block">
+        <div class="text-white/20 text-xs font-mono mb-2">NPM</div>
+        <div class="text-white font-heading font-semibold text-sm group-hover:text-danger transition-colors">@okx_ai/okx-trade-mcp</div>
+        <div class="text-white/25 text-xs mt-1">包管理器</div>
       </a>
-      <a href="https://www.okx.com/docs-v5/" target="_blank" class="group bg-noir-card border border-white/5 rounded-xl p-5 hover:border-okx/30 transition-all">
-        <div class="text-white/30 text-xs font-mono mb-2">OKX Docs</div>
-        <div class="text-white font-medium group-hover:text-okx transition-colors">API 文档 v5</div>
-        <div class="text-white/40 text-xs mt-1">官方接口文档</div>
+      <a href="https://www.okx.com/docs-v5/" target="_blank" class="card p-4 group hover:border-danger/40 transition-all block">
+        <div class="text-white/20 text-xs font-mono mb-2">OKX DOCS</div>
+        <div class="text-white font-heading font-semibold text-sm group-hover:text-danger transition-colors">API 文档 v5</div>
+        <div class="text-white/25 text-xs mt-1">官方接口文档</div>
       </a>
-      <a href="https://t.me/okx_ai_trading" target="_blank" class="group bg-noir-card border border-white/5 rounded-xl p-5 hover:border-okx/30 transition-all">
-        <div class="text-white/30 text-xs font-mono mb-2">Telegram</div>
-        <div class="text-white font-medium group-hover:text-okx transition-colors">社区交流群</div>
-        <div class="text-white/40 text-xs mt-1">策略讨论 &amp; 支持</div>
+      <a href="https://t.me/okx_ai_trading" target="_blank" class="card p-4 group hover:border-danger/40 transition-all block">
+        <div class="text-white/20 text-xs font-mono mb-2">TELEGRAM</div>
+        <div class="text-white font-heading font-semibold text-sm group-hover:text-danger transition-colors">社区交流群</div>
+        <div class="text-white/25 text-xs mt-1">策略讨论 &amp; 支持</div>
+      </a>
+    </div>
+    <div class="fade-in mt-6 text-center">
+      <a href="https://wangyangmingsss.github.io/meat-grinder-skill/live-demo.html" target="_blank" class="inline-block px-6 py-2 border border-danger/50 text-danger text-sm font-heading font-semibold hover:bg-danger/10 transition-all">
+        在线 Live Demo &rarr;
       </a>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer class="py-12 px-4 border-t border-white/5">
-  <div class="max-w-5xl mx-auto text-center">
-    <div class="mb-4"><span class="tag bg-okx/10 text-okx border border-okx/20 text-sm">#OKXAI交易大赛</span></div>
-    <p class="text-white/30 text-sm mb-2">多空绞肉机 | Long-Short Meat Grinder Strategy</p>
-    <p class="text-white/20 text-xs">本教程仅供学习参考，不构成投资建议。加密货币交易存在高风险，请谨慎操作。</p>
+<!-- ===================== FOOTER ===================== -->
+<footer class="py-10 px-4 border-t border-war-border">
+  <div class="max-w-7xl mx-auto text-center">
+    <div class="mb-3">
+      <span class="text-xs text-data border border-data/30 px-3 py-1 font-mono">#OKXAI交易大赛</span>
+    </div>
+    <p class="text-white/25 text-xs mb-1 font-mono">多空绞肉机 | Long-Short Meat Grinder Strategy</p>
+    <p class="text-white/15 text-xs">本教程仅供学习参考，不构成投资建议。加密货币交易存在高风险，请谨慎操作。</p>
   </div>
 </footer>
 
+<!-- ===================== SCRIPTS ===================== -->
 <script>
-window.addEventListener('scroll', () => {
-  const s = document.documentElement.scrollTop;
-  const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-  document.getElementById('progress-bar').style.width = (s / h * 100) + '%';
+// Progress bar
+window.addEventListener('scroll',()=>{
+  const s=document.documentElement.scrollTop;
+  const h=document.documentElement.scrollHeight-document.documentElement.clientHeight;
+  document.getElementById('progress-bar').style.width=(s/h*100)+'%';
 });
+
+// GSAP animations
 gsap.registerPlugin(ScrollTrigger);
-document.querySelectorAll('.fade-section').forEach((el, i) => {
-  gsap.to(el, {
-    scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' },
-    opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: (i % 3) * 0.1,
+
+// Hero entrance
+gsap.from('#hero-content',{opacity:0,y:50,duration:1.2,ease:'power4.out',delay:0.3});
+
+// Animated stat counters
+function animateCounter(el,target,suffix,prefix){
+  let obj={val:0};
+  gsap.to(obj,{val:target,duration:2,delay:0.8,ease:'power2.out',onUpdate:()=>{
+    el.textContent=(prefix||'')+obj.val.toFixed(2)+'%';
+  }});
+}
+function animateCounterInt(el,target,suffix){
+  let obj={val:0};
+  gsap.to(obj,{val:target,duration:2,delay:0.8,ease:'power2.out',onUpdate:()=>{
+    el.textContent=Math.round(obj.val)+suffix;
+  }});
+}
+animateCounter(document.getElementById('stat-return'),7.36,'%','+');
+animateCounterInt(document.getElementById('stat-winrate'),100,'%');
+setTimeout(()=>{document.getElementById('stat-dd').textContent='<1.5%';},2800);
+
+// Fade-in sections
+document.querySelectorAll('.fade-in').forEach((el,i)=>{
+  gsap.to(el,{
+    scrollTrigger:{trigger:el,start:'top 88%',toggleActions:'play none none none'},
+    opacity:1,y:0,duration:0.7,ease:'power3.out',delay:(i%3)*0.08
   });
 });
-gsap.from('#hero-content', { opacity: 0, y: 60, duration: 1.2, ease: 'power4.out', delay: 0.2 });
-document.querySelector('.hero-grid').addEventListener('mousemove', (e) => {
-  const x = (e.clientX / window.innerWidth - 0.5) * 10;
-  const y = (e.clientY / window.innerHeight - 0.5) * 10;
-  e.currentTarget.style.backgroundPosition = x + 'px ' + y + 'px';
-});
+
+// ECharts equity curve
+(function(){
+  const chart=echarts.init(document.getElementById('equity-chart'));
+  const days=['4/9','4/10','4/11','4/12','4/13','4/14','4/15'];
+  const equity=[500,500,500,511.65,511.65,511.65,536.83];
+
+  const option={
+    backgroundColor:'transparent',
+    grid:{left:50,right:30,top:40,bottom:40},
+    tooltip:{
+      trigger:'axis',
+      backgroundColor:'#0D1520',
+      borderColor:'#1a2332',
+      textStyle:{color:'#c8d0dc',fontFamily:'IBM Plex Mono',fontSize:11}
+    },
+    xAxis:{
+      type:'category',
+      data:days,
+      axisLine:{lineStyle:{color:'#1a2332'}},
+      axisLabel:{color:'#4a5568',fontFamily:'IBM Plex Mono',fontSize:10},
+      axisTick:{show:false}
+    },
+    yAxis:{
+      type:'value',
+      min:495,
+      max:545,
+      splitLine:{lineStyle:{color:'#1a2332',type:'dashed'}},
+      axisLine:{show:false},
+      axisLabel:{color:'#4a5568',fontFamily:'IBM Plex Mono',fontSize:10,formatter:'${value}'}
+    },
+    series:[{
+      name:'权益',
+      type:'line',
+      data:equity,
+      smooth:true,
+      symbol:'circle',
+      symbolSize:6,
+      lineStyle:{color:'#00FF88',width:2},
+      itemStyle:{color:'#00FF88',borderColor:'#080C14',borderWidth:2},
+      areaStyle:{
+        color:new echarts.graphic.LinearGradient(0,0,0,1,[
+          {offset:0,color:'rgba(0,255,136,0.15)'},
+          {offset:1,color:'rgba(0,255,136,0)'}
+        ])
+      },
+      markPoint:{
+        symbol:'pin',
+        symbolSize:40,
+        data:[
+          {name:'SHORT',coord:['4/11','500'],itemStyle:{color:'#FF3B3B'},label:{formatter:'SHORT',color:'#fff',fontSize:9,fontFamily:'IBM Plex Mono'}},
+          {name:'LONG',coord:['4/13','511.65'],itemStyle:{color:'#00FF88'},label:{formatter:'LONG',color:'#080C14',fontSize:9,fontFamily:'IBM Plex Mono'}}
+        ]
+      }
+    }]
+  };
+  chart.setOption(option);
+  window.addEventListener('resize',()=>chart.resize());
+})();
 </script>
 </body>
 </html>
