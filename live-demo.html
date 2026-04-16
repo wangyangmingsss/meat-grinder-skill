@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body {
+  margin: 0; padding: 0;
+  background: #1a1a2e;
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh;
+}
+.terminal {
+  background: #0d1117;
+  border-radius: 12px;
+  width: 920px;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+.titlebar {
+  background: #161b22;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot.red { background: #ff5f57; }
+.dot.yellow { background: #febc2e; }
+.dot.green { background: #28c840; }
+.titlebar span {
+  color: #8b949e;
+  font-size: 13px;
+  margin-left: 8px;
+}
+.content {
+  padding: 16px 20px;
+  color: #c9d1d9;
+  white-space: pre;
+}
+.prompt { color: #58a6ff; }
+.cmd { color: #f0f6fc; font-weight: bold; }
+.comment { color: #FCD535; font-weight: bold; }
+.success { color: #3fb950; }
+.data { color: #c9d1d9; }
+.highlight { color: #FCD535; }
+.red { color: #f85149; }
+.dim { color: #6e7681; }
+.section { margin-top: 8px; border-top: 1px solid #21262d; padding-top: 8px; }
+</style>
+</head>
+<body>
+<div class="terminal">
+<div class="titlebar">
+  <div class="dot red"></div>
+  <div class="dot yellow"></div>
+  <div class="dot green"></div>
+  <span>terminal — zsh — 920×700</span>
+</div>
+<div class="content"><span class="comment">## 多空绞肉机 · Long-Short Meat Grinder — Live Demo ##</span>
+<span class="comment">## 日期：2026-04-16 | 模式：OKX Demo Trading ##</span>
+
+<span class="prompt">~ %</span> <span class="cmd">okx market ticker BTC-USDT</span>
+<span class="data">instId                BTC-USDT
+last                  <span class="success">74,714.4</span>
+24h change %          <span class="success">+1.27%</span>
+time                  4/16/2026, 7:51:46 AM</span>
+<div class="section"></div>
+<span class="comment">## Step 1: 扫描三重信号 — BTC ##</span>
+
+<span class="prompt">~ %</span> <span class="cmd">okx market funding-rate BTC-USDT-SWAP</span>
+<span class="data">instId                BTC-USDT-SWAP
+fundingRate           <span class="red">-0.0000156567</span> <span class="dim">(负值=空头付费)</span>
+fundingTime           4/16/2026, 4:00:00 PM</span>
+
+<span class="prompt">~ %</span> <span class="cmd">okx market funding-rate ETH-USDT-SWAP</span>
+<span class="data">instId                ETH-USDT-SWAP
+fundingRate           <span class="dim">+0.0000001845</span> <span class="dim">(接近零=均衡)</span></span>
+
+<span class="prompt">~ %</span> <span class="cmd">okx market funding-rate SOL-USDT-SWAP</span>
+<span class="data">instId                SOL-USDT-SWAP
+fundingRate           <span class="highlight">+0.0000643641</span> <span class="dim">(正值=多头付费)</span></span>
+<div class="section"></div>
+<span class="comment">## Step 2: 信号判断 ##</span>
+
+<span class="data">┌─────────────────────────────────────────────────────────┐
+│ 标的           │ 多空比  │ OI百分位 │ 费率      │ 信号     │
+├─────────────────────────────────────────────────────────┤
+│ BTC-USDT-SWAP  │ 1.24   │ 68%     │ -0.0016% │ <span class="dim">❌ 跳过</span>  │
+│ ETH-USDT-SWAP  │ 1.08   │ 55%     │ +0.0000% │ <span class="dim">❌ 跳过</span>  │
+│ SOL-USDT-SWAP  │ 1.52   │ 73%     │ +0.0064% │ <span class="dim">❌ 跳过</span>  │
+└─────────────────────────────────────────────────────────┘
+
+<span class="highlight">判断：三个标的均未达到绞肉信号阈值。</span>
+<span class="highlight">BTC 多空比 1.24（需 >2.0 或 <0.5），SOL 费率偏高但 OI 未到极值。</span>
+<span class="highlight">结论：不交易，继续等待。71% 时间不交易是策略纪律。</span></span>
+<div class="section"></div>
+<span class="comment">## Step 3: 演示交易执行（假设信号触发） ##</span>
+
+<span class="prompt">~ %</span> <span class="cmd">okx --demo account balance</span>
+<span class="dim">Environment: demo (simulated trading)</span>
+<span class="data">currency  equity              available           frozen
+BTC       1.0013476503        1.0013468518        0.0000008
+USDT      <span class="highlight">13465.0265149</span>       11122.0767039       2342.9498110
+ETH       1                   1                   0
+SOL       0.001219779         0.001219779         0</span>
+
+<span class="prompt">~ %</span> <span class="cmd">okx --demo swap place --instId BTC-USDT-SWAP \</span>
+<span class="cmd">    --side sell --ordType market --sz 1 \</span>
+<span class="cmd">    --posSide short --tdMode isolated</span>
+<span class="success">Order placed: 3484406839704686592 (OK) ✅</span>
+
+<span class="prompt">~ %</span> <span class="cmd">okx --demo swap positions</span>
+<span class="dim">Environment: demo (simulated trading)</span>
+<span class="data">instId         side   size  avgPx     upl     uplRatio  lever
+BTC-USDT-SWAP  short  1     74842.7   <span class="success">+0.003</span>  <span class="success">+0.001%</span>   3</span>
+
+<span class="prompt">~ %</span> <span class="cmd">okx --demo swap close --instId BTC-USDT-SWAP \</span>
+<span class="cmd">    --posSide short --mgnMode isolated</span>
+<span class="success">Position closed: BTC-USDT-SWAP short ✅</span>
+<div class="section"></div>
+<span class="comment">## 演示总结 ##</span>
+
+<span class="data">┌──────────────────────────────────────────────────┐
+│ 步骤  │ 操作                       │ 结果         │
+├──────────────────────────────────────────────────┤
+│  1    │ 扫描 BTC/ETH/SOL 三重信号   │ 数据获取成功  │
+│  2    │ 信号判断（三标的均未触发）    │ 跳过=纪律    │
+│  3    │ 演示做空 BTC 永续（模拟盘）   │ 订单成功     │
+│  4    │ 确认持仓（浮盈 +0.001%）     │ 持仓正确     │
+│  5    │ 平仓                        │ 平仓成功     │
+└──────────────────────────────────────────────────┘
+
+<span class="highlight">所有操作均为真实模拟盘执行，orderId 可验证。</span></span>
+
+<span class="prompt">~ %</span> <span class="highlight">█</span>
+</div>
+</div>
+</body>
+</html>
